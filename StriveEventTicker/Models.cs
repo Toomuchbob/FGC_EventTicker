@@ -33,7 +33,7 @@ namespace StriveEventTicker
         public int Id { get; set; }
         public string Name { get; set; }
         public bool isOnline { get; set; }
-        public int? NumOfEntrants { get; set; }
+        public int? NumEntrants { get; set; }
         public int? EntrantSizeMax { get; set; }
         public DateTime StartAt { get; set; }
         public Videogame Videogame { get; set; }

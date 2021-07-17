@@ -19,28 +19,62 @@ namespace StriveEventTicker
 
             // A dictionary of dictionaries is required for complex arguments
 
-            // The filter and additional base query parameters need associated objects
+            var tournamentFilter = new Dictionary<string, object>();
+            tournamentFilter.Add("videogameIds", new int[] { 33945 });
+            tournamentFilter.Add("published", true);
+            tournamentFilter.Add("hasOnlineEvents", true);
+            tournamentFilter.Add("beforeDate", 1627698617);
+            tournamentFilter.Add("afterDate", 1625884217);
 
-            var filter = new Dictionary<string, object>();
-            filter.Add("videogameIds", new int[] { 33945 });
-            filter.Add("published", true);
-            filter.Add("hasOnlineEvents", true);
-            filter.Add("beforeDate", 1627698617);
-            filter.Add("afterDate", 1625884217);
+            var tournamentArguments = new Dictionary<string, object>();
+            tournamentArguments.Add("perPage", 500);
+            tournamentArguments.Add("page", 1);
+            tournamentArguments.Add("filter", tournamentFilter);
 
-            var f = new Dictionary<string, object>();
-            f.Add("perPage", 500);
-            f.Add("page", 1);
-            f.Add("filter", filter);
+            var eventFilter = new Dictionary<string, object>();
+            eventFilter.Add("videogameId", 33945);
+
+            var eventArguments = new Dictionary<string, object>();
+            eventArguments.Add("filter", eventFilter);
 
             var query = new Query<Tournaments>("tournaments", queryOptions)
-                .AddArgument("query", f)
+                .AddArgument("query", tournamentArguments)
                 .AddField(f => f.Nodes,
-                sq => sq
+                    sq => sq
                     .AddField(f => f.Id)
+                    .AddField(f => f.Name)
+                    .AddField(f => f.CountryCode)
+                    .AddField(f => f.IsOnline)
+                    .AddField(f => f.Slug)
+                    .AddField(f => f.StartAt)
+                    .AddField(f => f.EventRegistrationClosesAt)
+                    .AddField(f => f.Hashtag)
+                    .AddField(f => f.Events,
+                        sq => sq
+                        .AddArgument("filter", eventFilter)
+                        .AddField(f => f.Id)
+                        .AddField(f => f.Name)
+                        .AddField(f => f.isOnline)
+                        .AddField(f => f.NumEntrants)
+                        .AddField(f => f.EntrantSizeMax)
+                        .AddField(f => f.StartAt)
+                        .AddField(f => f.Videogame,
+                        sq => sq
+                        .AddField(f => f.Id)
+                        .AddField(f => f.Name)
+                        )
+                    )
+                    .AddField(f => f.Streams,
+                        sq => sq
+                        .AddField(f => f.Id)
+                        .AddField(f => f.IsOnline)
+                        .AddField(f => f.StreamName)
+                        .AddField(f => f.StreamSource)
+                        )
                 );
 
             Console.WriteLine("{" + query.Build() + "}");
+            Console.WriteLine("");
 
             request.Content = new StringContent(JsonConvert.SerializeObject(new { query = "{" + query.Build() + "}" }));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -50,13 +84,4 @@ namespace StriveEventTicker
             return await response.Content.ReadAsStringAsync();
         }
     }
-}
-
-class Filter
-{
-    public int[] VideogameIds { get; set; }
-    public bool Published { get; set; }
-    public bool HasOnlineEvents { get; set; }
-    public long BeforeDate { get; set; }
-    public long AfterDate { get; set; }
 }
